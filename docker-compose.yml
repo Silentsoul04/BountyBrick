@@ -1,0 +1,21 @@
+version: '3.7'
+services:
+    api:
+        build: ./api
+        container_name: brick
+        depends_on:
+            - 'mongo'
+        ports:
+            - '443:443'
+        volumes:
+            - './api:/api:cached'
+    # MongoDB
+    mongo:
+        image: 'mongo'
+        container_name: mongodb_bounty
+        ports:
+            - '127.0.0.1:27017:27017'
+        volumes:
+            - ./mongodata:/data/db
+        restart: always
+        #command: [--auth]
