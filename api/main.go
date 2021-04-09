@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/splinter0/api/master"
 	"github.com/splinter0/api/security"
 	"github.com/splinter0/api/views"
 )
@@ -18,7 +17,7 @@ const (
 
 func main() {
 	fmt.Println("Starting BountyBrick Service...")
-	go master.Start()
+	//go master.Start()
 
 	r := gin.Default()
 
@@ -30,9 +29,10 @@ func main() {
 	r.GET("/api/", views.Index)
 	r.GET("/api/programs", views.Programs)
 	r.GET("/api/programs/:id", views.GetProgram)
+	r.POST("/api/programs/:action", views.ProgAction)
 	r.GET("/api/repos", views.Repositories)
 	r.GET("/api/repos/:id", views.GetRepository)
-	r.POST("/api/repos/:id", views.RepoAction)
+	r.POST("/api/repos/:action", views.RepoAction)
 	r.GET("/api/actions", views.Actions)
 	// Start HTTPS
 	err := http.ListenAndServeTLS(":443", CRT, KEY, r)

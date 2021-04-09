@@ -41,7 +41,9 @@ The setup script will take care of all of them except `GITHUB_OAUTH` (OAuth toke
 #### Open Endpoints :earth_americas:
 
 :arrow_forward: `POST /api/login`
+
 Provided username and password as json-data it will return a JWT token
+
 **Valid request:**
 ```json
 {
@@ -67,9 +69,10 @@ Provided username and password as json-data it will return a JWT token
 All of these requests require a custom header `Token:` + the value of the token obtained at the login endpoint.
 
 :arrow_right: `GET /api/programs`
-:heavy_check_mark: Returns all the programs in the database
 
-**Sample response:**
+Returns all the programs in the database
+
+:heavy_check_mark: **Sample response:**
 ```json
 {
     "message": "success",
@@ -90,6 +93,7 @@ All of these requests require a custom header `Token:` + the value of the token 
 ```
 
 :arrow_right: `GET /api/programs/:id`
+
 Returns data about a specific program identified using the `id` parameter
 
 :heavy_check_mark: **Successful response:**
@@ -116,6 +120,7 @@ Returns data about a specific program identified using the `id` parameter
 ```
 
 :arrow_right: `GET /api/repos/`
+
 Returns all the repositories in the database
 
 :heavy_check_mark: **Sample response:**
@@ -144,6 +149,7 @@ Returns all the repositories in the database
 ```
 
 :arrow_right: `GET /api/repos/:id`
+
 Returns data about a specific repository identified using the `id` parameter
 
 :heavy_check_mark: **Successful response:**
@@ -174,14 +180,30 @@ Returns data about a specific repository identified using the `id` parameter
 }
 ```
 
-:arrow_forward: `POST /api/repos/:id?action=`
-Executes an action from the `action` query parameter on a specific repository identified with the `id` parameter
+:arrow_forward: `POST /api/repos/:action`
+
+Executes an action from the `action` parameter on the repositories (id) provided as json data.
+
+**Valid request:**
+```json
+{
+    "repos":[
+        "606e354539411b67f90222f1",
+        "606e354539411b67f90222f3",
+        "606e354539411b67f90222f2"
+    ]
+}
+```
 
 :heavy_check_mark: **Successful response:**
 ```json
-// /api/repos/606e354539411b67f90222f2?action=fork
 {
-    "message": "Successfully executed action: fork on skale-consensus"
+    "message": "success",
+    "repos": {
+        "606e354539411b67f90222f1": "Successfully started action: remove",
+        "606e354539411b67f90222f2": "Successfully started action: remove",
+        "606e354539411b67f90222f3": "Successfully started action: remove"
+    }
 }
 ```
 :x: **Unsuccessful response**
@@ -198,7 +220,47 @@ Executes an action from the `action` query parameter on a specific repository id
 }
 ```
 
+:arrow_forward: `POST /api/programs/:action`
+
+Executes an action from the `action` parameter on the programs (id) provided as json data.
+
+**Valid request:**
+```json
+{
+    "programs":[
+        "606e354439411b67f90222ee",
+        "606e354439411b67f90222ec",
+        "606e354439411b67f90222ed"
+    ]
+}
+```
+
+:heavy_check_mark: **Successful response:**
+```json
+{
+    "message": "success",
+    "programs": {
+        "606e354439411b67f90222ec": "Successfully started action: fork",
+        "606e354439411b67f90222ed": "Successfully started action: fork",
+        "606e354439411b67f90222ee": "Successfully started action: fork"
+    }
+}
+```
+:x: **Unsuccessful response**
+
+```json
+{
+    "actions": {
+        "bookmark": "Bookmark program to personal profile",
+        "fork": "Fork all the repositories in program",
+        "scan": "Run a Debricked scan on all the repositories in program"
+    },
+    "message": "The action: lol isn't valid!"
+}
+```
+
 :arrow_right: `GET /api/actions`
+
 Returns all actions avaiable for `repos` and `programs`
 
 :heavy_check_mark: **Sample response:**

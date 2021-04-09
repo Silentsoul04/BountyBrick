@@ -66,19 +66,27 @@ func Programs(c *gin.Context) {
 	})
 }
 
+// Helper function to validate program
+func valProg(p string) (bool, models.Program) {
+	var prog models.Program
+	id, err := primitive.ObjectIDFromHex(p)
+	if err != nil {
+		return false, prog
+	}
+	prog = database.GetProgramById(id)
+	if prog.Link == "" {
+		return false, prog
+	}
+	return true, prog
+}
+
 // Returns program based on id
 func GetProgram(c *gin.Context) {
 	p := c.Param("id")
-	id, err := primitive.ObjectIDFromHex(p)
-	if err != nil {
-		bad(c)
-		return
-	}
-	program := database.GetProgramById(id)
-	if program.Link != "" {
+	if ok, prog := valProg(p); ok {
 		c.JSON(200, gin.H{
 			"message": "success",
-			"program": program,
+			"program": prog,
 		})
 	} else {
 		c.JSON(400, gin.H{
@@ -92,6 +100,40 @@ var progActions = map[string]string{
 	"fork":     "Fork all the repositories in program",
 	"scan":     "Run a Debricked scan on all the repositories in program",
 	"bookmark": "Bookmark program to personal profile",
+}
+
+// Execute action on program (all repos contained)
+func ProgAction(c *gin.Context) {
+	action := c.Param("action")
+	if _, ok := progActions[action]; !ok {
+		c.JSON(400, gin.H{
+			"message": "The action: " + action + " isn't valid!",
+			"actions": progActions,
+		})
+		return
+	}
+
+	var body struct {
+		Programs []string `json:"programs"`
+	}
+	err := c.ShouldBindJSON(&body)
+	if err != nil {
+		bad(c)
+		return
+	}
+
+	response := make(map[string]string, len(body.Programs))
+	for i := range body.Programs {
+		if ok, program := valProg(body.Programs[i]); ok {
+			response[program.ID.Hex()] = "Successfully started action: " + action
+		} else {
+			response[body.Programs[i]] = "No such program found!"
+		}
+	}
+	c.JSON(200, gin.H{
+		"message":  "success",
+		"programs": response,
+	})
 }
 
 // Still not implemented
@@ -147,29 +189,42 @@ var repoActions = map[string]string{
 }
 
 func RepoAction(c *gin.Context) {
-	p := c.Param("id")
-	if ok, repo := valRepo(p); ok {
-		action := c.Query("action")
-		switch action {
-		case "fork":
-			miner.Fork(repo)
-		case "remove":
-			miner.Delete(repo)
-		default:
-			c.JSON(400, gin.H{
-				"message": "The action: " + action + " isn't valid!",
-				"actions": repoActions,
-			})
-			return
-		}
-		c.JSON(200, gin.H{
-			"message": "Successfully executed action: " + action + " on " + repo.Name,
-		})
-	} else {
+	action := c.Param("action")
+	if _, ok := repoActions[action]; !ok {
 		c.JSON(400, gin.H{
-			"message": "No repository with id: " + p + " found!",
+			"message": "The action: " + action + " isn't valid!",
+			"actions": repoActions,
 		})
+		return
 	}
+
+	var body struct {
+		Repos []string `json:"repos"`
+	}
+	err := c.ShouldBindJSON(&body)
+	if err != nil {
+		bad(c)
+		return
+	}
+
+	response := make(map[string]string, len(body.Repos))
+	for i := range body.Repos {
+		if ok, repo := valRepo(body.Repos[i]); ok {
+			switch action {
+			case "fork":
+				go miner.Fork(repo)
+			case "remove":
+				go miner.Delete(repo)
+			}
+			response[repo.ID.Hex()] = "Successfully started action: " + action
+		} else {
+			response[body.Repos[i]] = "No repository with id: " + body.Repos[i] + " found!"
+		}
+	}
+	c.JSON(200, gin.H{
+		"message": "success",
+		"repos":   response,
+	})
 }
 
 func Actions(c *gin.Context) {
