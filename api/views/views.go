@@ -87,6 +87,14 @@ func GetProgram(c *gin.Context) {
 	}
 }
 
+// Still not implemented
+var progActions = map[string]string{
+	"fork":     "Fork all the repositories in program",
+	"scan":     "Run a Debricked scan on all the repositories in program",
+	"bookmark": "Bookmark program to personal profile",
+}
+
+// Still not implemented
 var filters = map[string]string{
 	"forked":     "Show only the ones that were forked",
 	"scanned":    "Show only the ones that have a scan completed or ongoing",
@@ -131,7 +139,7 @@ func GetRepository(c *gin.Context) {
 	}
 }
 
-var actions = map[string]string{
+var repoActions = map[string]string{
 	"fork":     "Fork the repository",
 	"remove":   "Remove repository from github page",
 	"scan":     "Run a Debricked scan on repository",
@@ -150,7 +158,7 @@ func RepoAction(c *gin.Context) {
 		default:
 			c.JSON(400, gin.H{
 				"message": "The action: " + action + " isn't valid!",
-				"actions": actions,
+				"actions": repoActions,
 			})
 			return
 		}
@@ -162,4 +170,12 @@ func RepoAction(c *gin.Context) {
 			"message": "No repository with id: " + p + " found!",
 		})
 	}
+}
+
+func Actions(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message":         "Success",
+		"repo_actions":    repoActions,
+		"program_actions": progActions,
+	})
 }

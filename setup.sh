@@ -17,6 +17,7 @@ echo "MONGO_URI=mongodb://$username:$userPass@mongo:27017/$dbName" > api/.env
 echo "SECRET_KEY=$secretKey" >> api/.env
 echo "MAGIC_LINK=https://firebounty.com/?sort=created_at&order=desc&reward=Gift&reward=Reward&type=Bounty&search_field=scopes&search=github" >> api/.env
 echo "ROOT_LINK=https://firebounty.com" >> api/.env
+echo "GITHUB_API=https://api.github.com/" >> api/.env
 
 sudo docker-compose up -d
 
