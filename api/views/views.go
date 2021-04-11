@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/splinter0/api/database"
+	"github.com/splinter0/api/debricked"
 	"github.com/splinter0/api/miner"
 	"github.com/splinter0/api/models"
 	"github.com/splinter0/api/security"
@@ -95,20 +96,13 @@ func GetProgram(c *gin.Context) {
 	}
 }
 
-// Still not implemented
-var progActions = map[string]string{
-	"fork":     "Fork all the repositories in program",
-	"scan":     "Run a Debricked scan on all the repositories in program",
-	"bookmark": "Bookmark program to personal profile",
-}
-
 // Execute action on program (all repos contained)
 func ProgAction(c *gin.Context) {
 	action := c.Param("action")
-	if _, ok := progActions[action]; !ok {
+	if _, ok := actions[action]; !ok {
 		c.JSON(400, gin.H{
 			"message": "The action: " + action + " isn't valid!",
-			"actions": progActions,
+			"actions": displayActions(),
 		})
 		return
 	}
@@ -123,8 +117,15 @@ func ProgAction(c *gin.Context) {
 	}
 
 	response := make(map[string]string, len(body.Programs))
+	// Iter over all programs provided
 	for i := range body.Programs {
 		if ok, program := valProg(body.Programs[i]); ok {
+			// Iter over all repositories in program
+			for r := range program.Repos {
+				if ok, repo := valRepo(program.Repos[r].Hex()); ok {
+					go actions[action].Func(repo)
+				}
+			}
 			response[program.ID.Hex()] = "Successfully started action: " + action
 		} else {
 			response[body.Programs[i]] = "No such program found!"
@@ -148,8 +149,8 @@ var filters = map[string]string{
 func Repositories(c *gin.Context) {
 	//filter := c.Query("filter")
 	c.JSON(200, gin.H{
-		"message":  "success",
-		"programs": database.GetAllRepos(),
+		"message":      "success",
+		"repositories": database.GetAllRepos(),
 	})
 }
 
@@ -181,19 +182,44 @@ func GetRepository(c *gin.Context) {
 	}
 }
 
-var repoActions = map[string]string{
-	"fork":     "Fork the repository",
-	"remove":   "Remove repository from github page",
-	"scan":     "Run a Debricked scan on repository",
-	"bookmark": "Bookmark repository to personal profile",
+type Action struct {
+	Desc string
+	Func func(models.Repo)
+}
+
+var actions = map[string]Action{
+	"fork": {
+		"Fork the repository",
+		miner.Fork,
+	},
+	"remove": {
+		"Remove repository from github page",
+		miner.Delete,
+	},
+	"scan": {
+		"Run a Debricked scan on repository",
+		debricked.RunScan,
+	},
+	"bookmark": {
+		"Bookmark repository to personal profile",
+		func(models.Repo) {}, //TODO has to be executed in views context
+	},
+}
+
+func displayActions() map[string]string {
+	a := make(map[string]string, len(actions))
+	for k, v := range actions {
+		a[k] = v.Desc
+	}
+	return a
 }
 
 func RepoAction(c *gin.Context) {
 	action := c.Param("action")
-	if _, ok := repoActions[action]; !ok {
+	if _, ok := actions[action]; !ok {
 		c.JSON(400, gin.H{
 			"message": "The action: " + action + " isn't valid!",
-			"actions": repoActions,
+			"actions": displayActions(),
 		})
 		return
 	}
@@ -210,13 +236,8 @@ func RepoAction(c *gin.Context) {
 	response := make(map[string]string, len(body.Repos))
 	for i := range body.Repos {
 		if ok, repo := valRepo(body.Repos[i]); ok {
-			switch action {
-			case "fork":
-				go miner.Fork(repo)
-			case "remove":
-				go miner.Delete(repo)
-			}
-			response[repo.ID.Hex()] = "Successfully started action: " + action
+			go actions[action].Func(repo)
+			response[repo.Name] = "Successfully started action: " + action
 		} else {
 			response[body.Repos[i]] = "No repository with id: " + body.Repos[i] + " found!"
 		}
@@ -229,8 +250,8 @@ func RepoAction(c *gin.Context) {
 
 func Actions(c *gin.Context) {
 	c.JSON(200, gin.H{
-		"message":         "Success",
-		"repo_actions":    repoActions,
-		"program_actions": progActions,
+		"message":  "success",
+		"actions":  displayActions(),
+		"programs": "Every action can also be executed on programs, affecting all contained repos",
 	})
 }

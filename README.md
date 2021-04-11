@@ -11,8 +11,7 @@ security researcher to find dependency-related vulnerabilities in massive projec
 - [x] Extensive information about repositories collected
 - [x] Serve all the information collected
 - [x] Able to fork and remove repos on github profile
-- [ ] Find most optimal way to integrate Debricked API for uploads
-- [ ] Integrate Github webhooks to keep the forks updated
+- [x] Find most optimal way to integrate Debricked API for uploads
 - [ ] Subscription system (Debricked API) to scanned repositories -> update database
 - [ ] Add sorting based on different filters for programs and repositories
 - [ ] Build frontend with Vue
@@ -32,9 +31,12 @@ ROOT_LINK=https://firebounty.com
 GITHUB_API=https://api.github.com/
 GITHUB_OAUTH=
 GITHUB_ORG=
+
+DEBRICKED_USER=
+DEBRICKED_PASS=
 ```
 
-The setup script will take care of all of them except `GITHUB_OAUTH` (OAuth token which has rights the organisation used) and `GITHUB_ORG` which is the name of the organization.
+The setup script will take care of all of them except `GITHUB_OAUTH` (OAuth token which has rights the organisation used), `GITHUB_ORG` which is the name of the organization, `DEBRICKED_USER` which is the username (email) used of the debricked account and `DEBRICKED_PASS` which is the password of that account
 
 ## API Docs
 
@@ -266,17 +268,13 @@ Returns all actions avaiable for `repos` and `programs`
 :heavy_check_mark: **Sample response:**
 ```json
 {
-    "message": "Success",
-    "program_actions": {
-        "bookmark": "Bookmark program to personal profile",
-        "fork": "Fork all the repositories in program",
-        "scan": "Run a Debricked scan on all the repositories in program"
-    },
-    "repo_actions": {
+    "message": "success",
+    "actions": {
         "bookmark": "Bookmark repository to personal profile",
         "fork": "Fork the repository",
         "remove": "Remove repository from github page",
         "scan": "Run a Debricked scan on repository"
-    }
+    },
+    "programs": "Every action can also be executed on programs, affecting all contained repos"
 }
 ```
