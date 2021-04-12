@@ -18,6 +18,7 @@ echo "SECRET_KEY=$secretKey" >> api/.env
 echo "MAGIC_LINK=https://firebounty.com/?sort=created_at&order=desc&reward=Gift&reward=Reward&type=Bounty&search_field=scopes&search=github" >> api/.env
 echo "ROOT_LINK=https://firebounty.com" >> api/.env
 echo "GITHUB_API=https://api.github.com/" >> api/.env
+echo "DEBRICKED_API=https://app.debricked.com/api/1.0/open/" >> api/.env
 
 sudo docker-compose up -d
 

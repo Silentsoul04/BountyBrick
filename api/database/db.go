@@ -161,6 +161,19 @@ func SetForked(id primitive.ObjectID, status bool) {
 	defer cancel()
 }
 
+func SetBrick(id primitive.ObjectID, brickID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	repos := OpenCollection(Client, "repos")
+	repos.UpdateOne(
+		ctx,
+		bson.M{"_id": id},
+		bson.D{
+			{"$set", bson.D{{"brick", brickID}}},
+		},
+	)
+	defer cancel()
+}
+
 /* PROGRAMS MANAGEMENT */
 
 func AddProgram(program models.Program) bool {

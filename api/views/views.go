@@ -126,7 +126,7 @@ func ProgAction(c *gin.Context) {
 					go actions[action].Func(repo)
 				}
 			}
-			response[program.ID.Hex()] = "Successfully started action: " + action
+			response[program.Name] = "Successfully started action: " + action
 		} else {
 			response[body.Programs[i]] = "No such program found!"
 		}
@@ -237,7 +237,7 @@ func RepoAction(c *gin.Context) {
 	for i := range body.Repos {
 		if ok, repo := valRepo(body.Repos[i]); ok {
 			go actions[action].Func(repo)
-			response[repo.Name] = "Successfully started action: " + action
+			response[repo.Short] = "Successfully started action: " + action
 		} else {
 			response[body.Repos[i]] = "No repository with id: " + body.Repos[i] + " found!"
 		}

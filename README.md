@@ -13,6 +13,7 @@ security researcher to find dependency-related vulnerabilities in massive projec
 - [x] Able to fork and remove repos on github profile
 - [x] Find most optimal way to integrate Debricked API for uploads
 - [ ] Subscription system (Debricked API) to scanned repositories -> update database
+- [ ] Add more complex regex system to match more repo urls
 - [ ] Add sorting based on different filters for programs and repositories
 - [ ] Build frontend with Vue
 
@@ -34,6 +35,7 @@ GITHUB_ORG=
 
 DEBRICKED_USER=
 DEBRICKED_PASS=
+DEBRICKED_API=https://app.debricked.com/api/1.0/open/
 ```
 
 The setup script will take care of all of them except `GITHUB_OAUTH` (OAuth token which has rights the organisation used), `GITHUB_ORG` which is the name of the organization, `DEBRICKED_USER` which is the username (email) used of the debricked account and `DEBRICKED_PASS` which is the password of that account

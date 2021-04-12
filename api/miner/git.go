@@ -4,6 +4,8 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -163,4 +165,27 @@ func AddFile(content []byte, commit, repo, name string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+// This turns out to be useless, but lets keep it for the future
+func GetWorkflows(repo string) {
+	req, _ := http.NewRequest(
+		"GET",
+		os.Getenv("GITHUB_API")+"repos/"+os.Getenv("GITHUB_ORG")+"/"+repo+"/actions/runs",
+		nil,
+	)
+	req.Header.Set("Authorization", "token "+os.Getenv("GITHUB_OAUTH"))
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	defer resp.Body.Close()
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	fmt.Println(string(b))
 }
