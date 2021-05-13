@@ -27,10 +27,6 @@ func main() {
 	miner.AddSecret("DEBRICKED_PASSWORD", os.Getenv("DEBRICKED_PASS"))
 
 	debricked.ScaryDeamon()
-	/*vulns := debricked.GetLatest("5307")
-	for i := range vulns {
-		fmt.Println(vulns[i].CVE, vulns[i].CVSS)
-	}*/
 
 	r := gin.Default()
 

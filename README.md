@@ -12,7 +12,7 @@ security researcher to find dependency-related vulnerabilities in massive projec
 - [x] Serve all the information collected
 - [x] Able to fork and remove repos on github profile
 - [x] Find most optimal way to integrate Debricked API for uploads
-- [ ] Subscription system (Debricked API) to scanned repositories -> update database
+- [x] Subscription system (Debricked API) to scanned repositories -> update database
 - [ ] Add more complex regex system to match more repo urls
 - [ ] Add sorting based on different filters for programs and repositories
 - [ ] Build frontend with Vue
