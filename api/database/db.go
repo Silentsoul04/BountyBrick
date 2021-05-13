@@ -16,6 +16,11 @@ import (
 	"github.com/splinter0/api/models"
 )
 
+/*
+	Here are all the functions used to interact with the
+	database.
+*/
+
 func DBInstance() *mongo.Client {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
@@ -148,30 +153,52 @@ func GetAllRepos() []models.Repo {
 	return repos
 }
 
-func SetForked(id primitive.ObjectID, status bool) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+func EditRepo(id primitive.ObjectID, change bson.M) {
 	repos := OpenCollection(Client, "repos")
-	repos.UpdateOne(
-		ctx,
+	updated, err := repos.UpdateOne(
+		context.TODO(),
 		bson.M{"_id": id},
-		bson.D{
-			{"$set", bson.D{{"forked", status}}},
+		bson.M{
+			"$set": change,
 		},
 	)
-	defer cancel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(updated.MatchedCount, updated.ModifiedCount)
+}
+
+func SetForked(id primitive.ObjectID, status bool) {
+	EditRepo(id, bson.M{"forked": status})
 }
 
 func SetBrick(id primitive.ObjectID, brickID string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	EditRepo(id, bson.M{"brick": brickID})
+
+}
+
+func SetCommit(id primitive.ObjectID, commit string) {
+	EditRepo(id, bson.M{"commit": commit})
+
+}
+
+func SetStatus(id primitive.ObjectID, status string) {
+	EditRepo(id, bson.M{"scan_status": status})
+
+}
+
+func SetResult(id primitive.ObjectID, result string) {
+	EditRepo(id, bson.M{"scan_result": result})
+
+}
+
+func AddVulns(id primitive.ObjectID, vulns []models.Vuln) {
 	repos := OpenCollection(Client, "repos")
 	repos.UpdateOne(
-		ctx,
+		context.Background(),
 		bson.M{"_id": id},
-		bson.D{
-			{"$set", bson.D{{"brick", brickID}}},
-		},
+		bson.M{"$push": bson.M{"vulns": bson.M{"$each": vulns}}},
 	)
-	defer cancel()
 }
 
 /* PROGRAMS MANAGEMENT */

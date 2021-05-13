@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/splinter0/api/debricked"
+	"github.com/splinter0/api/master"
 	"github.com/splinter0/api/miner"
 	"github.com/splinter0/api/security"
 	"github.com/splinter0/api/views"
@@ -20,12 +21,16 @@ const (
 
 func main() {
 	fmt.Println("Starting BountyBrick Service...")
-	//go master.Start()
+	go master.Start()
 
 	miner.AddSecret("DEBRICKED_USERNAME", os.Getenv("DEBRICKED_USER"))
 	miner.AddSecret("DEBRICKED_PASSWORD", os.Getenv("DEBRICKED_PASS"))
 
 	debricked.ScaryDeamon()
+	/*vulns := debricked.GetLatest("5307")
+	for i := range vulns {
+		fmt.Println(vulns[i].CVE, vulns[i].CVSS)
+	}*/
 
 	r := gin.Default()
 

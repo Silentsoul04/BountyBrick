@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/splinter0/api/database"
 	"github.com/splinter0/api/models"
@@ -39,6 +40,7 @@ func Delete(repo models.Repo) {
 	client := &http.Client{}
 	client.Do(req)
 	database.SetForked(repo.ID, false)
+	database.SetCommit(repo.ID, "")
 }
 
 // Fetch forks from Github and compare them with our DB
@@ -165,6 +167,67 @@ func AddFile(content []byte, commit, repo, name string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func GetRun(repo, commit string) (status, title, url, summary string) {
+	req, _ := http.NewRequest(
+		"GET",
+		os.Getenv("GITHUB_API")+"repos/"+os.Getenv("GITHUB_ORG")+"/"+repo+"/commits/"+commit+"/check-runs",
+		nil,
+	)
+	req.Header.Set("Authorization", "token "+os.Getenv("GITHUB_OAUTH"))
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	var result struct {
+		Runs []struct {
+			Status string `json:"status"`
+			Url    string `json:"details_url"`
+			Output struct {
+				Title string `json:"title"`
+				Summ  string `json:"summary"`
+			} `json:"output"`
+		} `json:"check_runs"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	status = result.Runs[0].Status
+	title = result.Runs[0].Output.Title
+	url = result.Runs[0].Url
+	summary = result.Runs[0].Output.Summ
+	return
+}
+
+func GetLastCommit(repo string) (sha string) {
+	stamp := time.Now().Local().Add(time.Minute * -1).Format("2006-01-02T15:04:05.000+0000")
+	req, _ := http.NewRequest(
+		"GET",
+		os.Getenv("GITHUB_API")+"repos/"+os.Getenv("GITHUB_ORG")+"/"+repo+"/commits?since="+stamp,
+		nil,
+	)
+	req.Header.Set("Authorization", "token "+os.Getenv("GITHUB_OAUTH"))
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	var result []struct {
+		Sha string `json:"sha"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	sha = result[0].Sha
+	return
 }
 
 // This turns out to be useless, but lets keep it for the future

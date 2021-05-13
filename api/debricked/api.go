@@ -3,7 +3,6 @@ package debricked
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -17,6 +16,7 @@ import (
 	"github.com/splinter0/api/database"
 	"github.com/splinter0/api/miner"
 	"github.com/splinter0/api/models"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func RunScan(repo models.Repo) {
@@ -41,7 +41,29 @@ func RunScan(repo models.Repo) {
 			}
 		}
 	}
-	//GetLatest(id)
+	commit := miner.GetLastCommit(repo.Name)
+	finished := false
+	for !finished {
+		time.Sleep(5 * time.Second)
+		status, _, _, _ := miner.GetRun(repo.Name, commit)
+		/*database.SetCommit(repo.ID, commit)
+		database.SetStatus(repo.ID, status)
+		/*database.EditRepo(repo.ID, bson.M{
+			"commit":      commit,
+			"scan_status": status,
+			"scan_result": title,
+		})*/
+		if status != "completed" {
+			continue
+		}
+		// Since there is no open API endpoint on Debricked to
+		// check the scan status I will use the github api
+		database.SetBrick(repo.ID, id)
+		vulns := GetLatest(id)
+		database.SetCommit(repo.ID, commit)
+		database.EditRepo(repo.ID, bson.M{"vulns": vulns})
+		finished = true
+	}
 }
 
 type Call struct {
@@ -144,7 +166,7 @@ func GetRepositories() (result []drepo) {
 	return
 }
 
-func GetLatest(id string) {
+func GetLatest(id string) (vulns []models.Vuln) {
 	calls <- Call{
 		"POST",
 		os.Getenv("DEBRICKED_API") + "zapier/newcve/poll",
@@ -165,5 +187,13 @@ func GetLatest(id string) {
 		log.Fatalln(err)
 		return
 	}
-	fmt.Println(string(b))
+	err = json.Unmarshal(b, &vulns)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return
+}
+
+func GetStatus(id string) {
+
 }

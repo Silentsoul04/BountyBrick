@@ -14,6 +14,8 @@ type Repo struct {
 	Debricked   string             `json:"brick"` // Debricked ID
 	ScanStatus  string             `json:"scan_status"`
 	ScanResult  string             `json:"scan_result"`
+	Commit      string             `json:"commit"` // Commit corresponding to the scan
+	Vulns       []Vuln             `json:"vulns"`
 	Program     primitive.ObjectID `json:"program"`      // Owned by what program?
 	ProgramName string             `json:"program_name"` // Name of program
 	Forked      bool               `json:"forked"`       // If repo has been forked already
@@ -22,4 +24,9 @@ type Repo struct {
 	Size        int                `json:"size"`
 	Created     time.Time          `json:"created"` // When repo was added to scope
 	Updated     time.Time          `json:"updated"` // Last time the repo was updated
+}
+
+type Vuln struct {
+	CVE  string  `json:"cve"`
+	CVSS float32 `json:"cvss3"`
 }
