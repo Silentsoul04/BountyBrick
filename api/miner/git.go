@@ -120,6 +120,7 @@ func GetPublicKey() (key, id string) {
 // Add secret to organization (used for Debricked login)
 func AddSecret(name, value string) {
 	key, id := GetPublicKey()
+	// TODO: Implement this in Golang
 	cmd := exec.Command("python3", "security/secret.py", key, value)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -226,7 +227,9 @@ func GetLastCommit(repo string) (sha string) {
 		log.Fatalln(err)
 		return
 	}
-	sha = result[0].Sha
+	if len(result) > 0 {
+		sha = result[0].Sha
+	}
 	return
 }
 

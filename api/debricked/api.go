@@ -27,6 +27,7 @@ func RunScan(repo models.Repo) {
 		repo.Name,
 		"action.yml",
 	)
+	/* FIX DB NOT UPDATING PROPERLY */
 	found := false
 	var id string
 	for !found {
@@ -61,6 +62,7 @@ func RunScan(repo models.Repo) {
 		database.SetBrick(repo.ID, id)
 		vulns := GetLatest(id)
 		database.SetCommit(repo.ID, commit)
+		database.EditRepo(repo.ID, bson.M{"commit": commit})
 		database.EditRepo(repo.ID, bson.M{"vulns": vulns})
 		finished = true
 	}

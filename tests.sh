@@ -1,0 +1,1 @@
+sudo docker-compose exec api go test -v

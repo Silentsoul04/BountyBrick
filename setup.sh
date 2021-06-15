@@ -7,10 +7,6 @@ read username
 rootPass=$(echo -n $(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '' | base64 </dev/urandom | head -c 36 ; echo '') | md5sum | awk '{print $1}')
 userPass=$(echo -n $(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '' | base64 </dev/urandom | head -c 36 ; echo '') | md5sum | awk '{print $1}')
 
-echo "Creating TLS Keys..."
-openssl ecparam -genkey -name secp384r1 -out api/server.key
-openssl req -new -x509 -sha256 -key api/server.key -out api/server.crt -days 3650
-
 secretKey=$(echo -n $(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '' | base64 </dev/urandom | head -c 36 ; echo '') | md5sum | awk '{print $1}')
 
 echo "MONGO_URI=mongodb://$username:$userPass@mongo:27017/$dbName" > api/.env

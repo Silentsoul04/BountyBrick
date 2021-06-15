@@ -95,7 +95,6 @@ func AddRepo(repo models.Repo) bool {
 	_, err := OpenCollection(Client, "repos").InsertOne(ctx, repo)
 	defer cancel()
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	return true
@@ -104,9 +103,7 @@ func AddRepo(repo models.Repo) bool {
 // Checks if repo is already in DB by link
 func RepoExistsLink(link string) (bool, primitive.ObjectID) {
 	var repo models.Repo
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	err := OpenCollection(Client, "repos").FindOne(ctx, bson.M{"link": link}).Decode(&repo)
-	defer cancel()
+	err := OpenCollection(Client, "repos").FindOne(context.TODO(), bson.M{"link": link}).Decode(&repo)
 	if err != nil {
 		return false, repo.ID
 	}
@@ -115,47 +112,39 @@ func RepoExistsLink(link string) (bool, primitive.ObjectID) {
 
 // Checks if repo is already in DB by ID
 func RepoExistsId(id primitive.ObjectID) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	result := OpenCollection(Client, "repos").FindOne(ctx, bson.M{"_id": id})
-	defer cancel()
+	result := OpenCollection(Client, "repos").FindOne(context.TODO(), bson.M{"_id": id})
 	return result.Err() == nil
 }
 
 func GetRepo(id primitive.ObjectID) models.Repo {
 	var repo models.Repo
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	OpenCollection(Client, "repos").FindOne(ctx, bson.M{"_id": id}).Decode(&repo)
-	defer cancel()
+	OpenCollection(Client, "repos").FindOne(context.TODO(), bson.M{"_id": id}).Decode(&repo)
 	return repo
 }
 
 func GetRepoByName(name string) models.Repo {
 	var repo models.Repo
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	OpenCollection(Client, "repos").FindOne(ctx, bson.M{"name": name}).Decode(&repo)
-	defer cancel()
+	OpenCollection(Client, "repos").FindOne(context.TODO(), bson.M{"name": name}).Decode(&repo)
 	return repo
 }
 
 func GetAllRepos() []models.Repo {
 	var repos []models.Repo
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	p := OpenCollection(Client, "repos")
-	cursor, err := p.Find(ctx, bson.D{})
+	cursor, err := p.Find(context.TODO(), bson.D{})
 	if err == nil {
-		for cursor.Next(ctx) {
+		for cursor.Next(context.TODO()) {
 			var r models.Repo
 			cursor.Decode(&r)
 			repos = append(repos, r)
 		}
 	}
-	defer cancel()
 	return repos
 }
 
 func EditRepo(id primitive.ObjectID, change bson.M) {
 	repos := OpenCollection(Client, "repos")
-	updated, err := repos.UpdateOne(
+	result, err := repos.UpdateOne(
 		context.TODO(),
 		bson.M{"_id": id},
 		bson.M{
@@ -165,7 +154,11 @@ func EditRepo(id primitive.ObjectID, change bson.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(updated.MatchedCount, updated.ModifiedCount)
+	fmt.Println("UpdateOne() result:", result)
+	fmt.Println("UpdateOne() result MatchedCount:", result.MatchedCount)
+	fmt.Println("UpdateOne() result ModifiedCount:", result.ModifiedCount)
+	fmt.Println("UpdateOne() result UpsertedCount:", result.UpsertedCount)
+	fmt.Println("UpdateOne() result UpsertedID:", result.UpsertedID)
 }
 
 func SetForked(id primitive.ObjectID, status bool) {

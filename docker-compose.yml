@@ -11,11 +11,11 @@ services:
             - './api:/api:cached'
     # MongoDB
     mongo:
-        image: 'mongo'
+        image: ./mongodata
         container_name: mongodb_bounty
         ports:
             - '127.0.0.1:27017:27017'
         volumes:
             - ./mongodata:/data/db
         restart: always
-        #command: [--auth]
+        command: [--auth]
